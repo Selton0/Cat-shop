@@ -1,0 +1,5 @@
+# Banco de dados
+*.db
+
+# Cache Python
+__pycache__/
