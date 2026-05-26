@@ -7,3 +7,9 @@ class Produto(Base):
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String)
     preco = Column(Float)
+
+class Categoria(Base):
+    __tablename__ = "categorias"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String)
