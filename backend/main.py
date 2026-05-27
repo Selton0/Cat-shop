@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -45,7 +45,7 @@ def buscar_produto(produto_id: int):
         )
     return produto
 
-@app.post("/produtos")
+@app.post("/produtos", status_code=status.HTTP_201_CREATED)
 def criar_produto(produto: schemas.ProdutoCreate):
     db: Session = SessionLocal()
     novo_produto = models.Produto(
@@ -95,3 +95,22 @@ def deletar_produto(produto_id: int):
     db.delete(produto)
     db.commit()
     return {"mensagem": "Produto deletado"}
+
+@app.get("/categorias")
+def listar_categorias():
+
+    db: Session = SessionLocal()
+    categorias = db.query(models.Categoria).all()
+    return categorias
+
+@app.post("/categorias", status_code=status.HTTP_201_CREATED)
+def criar_categoria(categoria: schemas.CategoriaCreate):
+    db: Session = SessionLocal()
+    nova_categoria = models.Categoria(
+        nome=categoria.nome
+
+    )
+    db.add(nova_categoria)
+    db.commit()
+    db.refresh(nova_categoria)
+    return nova_categoria
