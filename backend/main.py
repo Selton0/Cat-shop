@@ -50,7 +50,8 @@ def criar_produto(produto: schemas.ProdutoCreate):
     db: Session = SessionLocal()
     novo_produto = models.Produto(
         nome=produto.nome,
-        preco=produto.preco
+        preco=produto.preco,
+        categoria_id=produto.categoria_id
     )
 
     db.add(novo_produto)
@@ -114,3 +115,26 @@ def criar_categoria(categoria: schemas.CategoriaCreate):
     db.commit()
     db.refresh(nova_categoria)
     return nova_categoria
+
+@app.delete("/categorias/{categoria_id}")
+def deletar_categoria(categoria_id: int):
+    db: Session = SessionLocal()
+    categoria = db.query(models.Categoria).filter(
+        models.Categoria.id == categoria_id
+    ).first()
+
+    if not categoria:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    produtos_vinculados = db.query(models.Produto).filter(
+        models.Produto.categoria_id == categoria_id
+    ).count()
+
+    if produtos_vinculados > 0:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Não é possível excluir: {produtos_vinculados} produto(s) usam essa categoria."
+        )
+
+    db.delete(categoria)
+    db.commit()
+    return {"mensagem": "Categoria deletada"}

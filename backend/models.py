@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from database import Base
 
 class Produto(Base):
@@ -7,6 +7,7 @@ class Produto(Base):
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String)
     preco = Column(Float)
+    categoria_id = Column(Integer, ForeignKey("categorias.id"))
 
 class Categoria(Base):
     __tablename__ = "categorias"

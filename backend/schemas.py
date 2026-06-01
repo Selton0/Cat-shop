@@ -3,6 +3,7 @@ from pydantic import BaseModel
 class ProdutoBase(BaseModel):
     nome: str
     preco: float
+    categoria_id: int
 class ProdutoCreate(ProdutoBase):
     pass
 class Produto(ProdutoBase):
