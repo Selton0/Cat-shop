@@ -48,6 +48,13 @@ def buscar_produto(produto_id: int):
 @app.post("/produtos", status_code=status.HTTP_201_CREATED)
 def criar_produto(produto: schemas.ProdutoCreate):
     db: Session = SessionLocal()
+
+    categoria = db.query(models.Categoria).filter(
+        models.Categoria.id == produto.categoria_id
+    ).first()
+    if not categoria:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    
     novo_produto = models.Produto(
         nome=produto.nome,
         preco=produto.preco,
@@ -138,3 +145,8 @@ def deletar_categoria(categoria_id: int):
     db.delete(categoria)
     db.commit()
     return {"mensagem": "Categoria deletada"}
+
+@app.get("/produtos", response_model=list[schemas.Produto])
+def listar_produtos():
+    db: Session = SessionLocal()
+    return db.query(models.Produto).all()

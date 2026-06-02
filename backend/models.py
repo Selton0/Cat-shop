@@ -8,6 +8,7 @@ class Produto(Base):
     nome = Column(String)
     preco = Column(Float)
     categoria_id = Column(Integer, ForeignKey("categorias.id"))
+    categoria = relationship("Categoria")
 
 class Categoria(Base):
     __tablename__ = "categorias"

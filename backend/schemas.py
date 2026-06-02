@@ -8,6 +8,7 @@ class ProdutoCreate(ProdutoBase):
     pass
 class Produto(ProdutoBase):
     id: int
+    categoria: Categoria
     class Config:
         from_attributes = True
 

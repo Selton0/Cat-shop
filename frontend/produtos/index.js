@@ -12,8 +12,8 @@ function carregarProdutos() {
 
             <div>
               <strong>${produto.nome}</strong>
-              <span class="badge bg-success">
-                R$ ${produto.preco}
+              <span class="badge bg-secondary">
+                  ${produto.categoria.nome}
               </span>
             </div>
 
