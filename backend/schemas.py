@@ -18,5 +18,10 @@ class CategoriaCreate(CategoriaBase):
     pass
 class Categoria(CategoriaBase):
     id: int
+    categoria: Categoria
     class Config:
         from_attributes = True
+
+class LoginInput(BaseModel):
+    email: str
+    senha: str

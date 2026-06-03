@@ -1,33 +1,61 @@
-$.ajax({
-  url: "http://127.0.0.1:8000/categorias",
-  method: "GET",
-  success: function (categorias) {
-    categorias.forEach(function (cat) {
-      $("#categoria_id").append(`<option value="${cat.id}">${cat.nome}</option>`);
-    });
-  }
-});
+if (!localStorage.getItem("token")) {
+  window.location.href = "../../login.html";
+}
 
-$("#formProduto").submit(function (event) {
-  event.preventDefault();
+$(document).ready(function () {
+
+  // Exibe usuário e botão Sair
+  const usuario = localStorage.getItem("usuario") || "Usuário";
+  $("nav.menu, nav.d-flex").prepend(`
+    <span class="text-white me-2 align-self-center small">${usuario}</span>
+    <button class="btn btn-outline-light btn-sm" id="btnSair">Sair</button>
+  `);
+
+  $("#btnSair").on("click", function () {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    window.location.href = "../../login.html";
+  });
 
   $.ajax({
-    url: "http://127.0.0.1:8000/produtos",
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify({
-      nome: $("#nome").val(),
-      preco: parseFloat($("#preco").val()),
-      categoria_id: parseInt($("#categoria_id").val())
-    }),
-    success: function () {
-      alert("Produto criado!");
-      window.location.href = "../index.html";
-    },
-    error: function (xhr) {
-      if (xhr.status === 404) alert("Categoria não encontrada.");
-      else if (xhr.status === 422) alert("Preencha todos os campos.");
-      else alert("Erro ao criar produto.");
+    url: "http://127.0.0.1:8000/categorias",
+    method: "GET",
+    success: function (categorias) {
+      categorias.forEach(function (cat) {
+        $("#categoria_id").append(`<option value="${cat.id}">${cat.nome}</option>`);
+      });
     }
   });
+
+  $("#formProduto").submit(function (event) {
+    event.preventDefault();
+
+    $.ajax({
+      url: "http://127.0.0.1:8000/produtos",
+      method: "POST",
+      contentType: "application/json",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      },
+      data: JSON.stringify({
+        nome: $("#nome").val(),
+        preco: parseFloat($("#preco").val()),
+        categoria_id: parseInt($("#categoria_id").val())
+      }),
+      success: function () {
+        alert("Produto criado!");
+        window.location.href = "../index.html";
+      },
+      error: function (xhr) {
+        if (xhr.status === 401) {
+          alert("Sessão expirada. Faça login novamente.");
+          window.location.href = "../../login.html";
+        }
+        else if (xhr.status === 404) alert("Categoria não encontrada.");
+        else if (xhr.status === 422) alert("Preencha todos os campos.");
+        else alert("Erro ao criar produto.");
+      }
+    });
+  });
+
 });

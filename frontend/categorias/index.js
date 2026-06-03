@@ -1,3 +1,7 @@
+if (!localStorage.getItem("token")) {
+  window.location.href = "../login.html";
+}
+
 function carregarCategorias() {
   $.ajax({
     url: "http://127.0.0.1:8000/categorias",
@@ -17,32 +21,25 @@ function carregarCategorias() {
         $("#lista").append(`
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <strong>${cat.nome}</strong>
-            <button
-              class="btn btn-danger btn-sm excluir"
-              data-id="${cat.id}"
-            >
+            <button class="btn btn-danger btn-sm excluir" data-id="${cat.id}">
               Excluir
             </button>
           </li>
         `);
       });
 
-      // Evento de excluir
       $(".excluir").on("click", function () {
         const id = $(this).data("id");
-
         if (!confirm("Excluir esta categoria?")) return;
 
         $.ajax({
           url: `http://127.0.0.1:8000/categorias/${id}`,
           method: "DELETE",
+          headers: { "Authorization": "Bearer " + localStorage.getItem("token") },
           success: function () { carregarCategorias(); },
           error: function (xhr) {
-            if (xhr.status === 400) {
-              alert(xhr.responseJSON.detail);
-            } else {
-              alert("Erro ao excluir categoria.");
-            }
+            if (xhr.status === 400) alert(xhr.responseJSON.detail);
+            else alert("Erro ao excluir categoria.");
           }
         });
       });
@@ -54,4 +51,18 @@ function carregarCategorias() {
   });
 }
 
-$(document).ready(carregarCategorias);
+$(document).ready(function () {
+  const usuario = localStorage.getItem("usuario") || "Usuário";
+  $("nav.menu, nav.d-flex").prepend(`
+    <span class="text-white me-2 align-self-center small">${usuario}</span>
+    <button class="btn btn-outline-light btn-sm" id="btnSair">Sair</button>
+  `);
+
+  $("#btnSair").on("click", function () {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    window.location.href = "../login.html";
+  });
+
+  carregarCategorias();
+});

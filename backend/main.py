@@ -1,6 +1,9 @@
 from fastapi import FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+from auth import verificar_senha, criar_token, validar_token
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi import Depends
 
 import models
 import schemas
@@ -24,11 +27,23 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/produtos")
+@app.post("/login")
+def login(dados: schemas.LoginInput):
+    db: Session = SessionLocal()
+    usuario = db.query(models.Usuario).filter(
+        models.Usuario.email == dados.email
+    ).first()
+
+    if not usuario or not verificar_senha(dados.senha, usuario.senha):
+        raise HTTPException(status_code=401, detail="Email ou senha inválidos.")
+
+    token = criar_token({"sub": usuario.email, "nome": usuario.nome})
+    return {"access_token": token, "token_type": "bearer"}
+
+@app.get("/produtos", response_model=list[schemas.Produto])
 def listar_produtos():
     db: Session = SessionLocal()
-    produtos = db.query(models.Produto).all()
-    return produtos
+    return db.query(models.Produto).all()
 
 @app.get("/produtos/{produto_id}")
 def buscar_produto(produto_id: int):
@@ -46,7 +61,7 @@ def buscar_produto(produto_id: int):
     return produto
 
 @app.post("/produtos", status_code=status.HTTP_201_CREATED)
-def criar_produto(produto: schemas.ProdutoCreate):
+def criar_produto(produto: schemas.ProdutoCreate, token=Depends(validar_token)):
     db: Session = SessionLocal()
 
     categoria = db.query(models.Categoria).filter(
@@ -69,7 +84,8 @@ def criar_produto(produto: schemas.ProdutoCreate):
 @app.put("/produtos/{produto_id}")
 def atualizar_produto(
     produto_id: int,
-    produto: schemas.ProdutoCreate
+    produto: schemas.ProdutoCreate,
+    token=Depends(validar_token)
 ):
 
     db: Session = SessionLocal()
@@ -89,7 +105,7 @@ def atualizar_produto(
     return produto_db
 
 @app.delete("/produtos/{produto_id}")
-def deletar_produto(produto_id: int):
+def deletar_produto(produto_id: int, token=Depends(validar_token)):
     db: Session = SessionLocal()
     produto = db.query(models.Produto).filter(
         models.Produto.id == produto_id
@@ -112,7 +128,7 @@ def listar_categorias():
     return categorias
 
 @app.post("/categorias", status_code=status.HTTP_201_CREATED)
-def criar_categoria(categoria: schemas.CategoriaCreate):
+def criar_categoria(categoria: schemas.CategoriaCreate, token=Depends(validar_token)):
     db: Session = SessionLocal()
     nova_categoria = models.Categoria(
         nome=categoria.nome
@@ -124,7 +140,7 @@ def criar_categoria(categoria: schemas.CategoriaCreate):
     return nova_categoria
 
 @app.delete("/categorias/{categoria_id}")
-def deletar_categoria(categoria_id: int):
+def deletar_categoria(categoria_id: int, token=Depends(validar_token)):
     db: Session = SessionLocal()
     categoria = db.query(models.Categoria).filter(
         models.Categoria.id == categoria_id
@@ -145,8 +161,3 @@ def deletar_categoria(categoria_id: int):
     db.delete(categoria)
     db.commit()
     return {"mensagem": "Categoria deletada"}
-
-@app.get("/produtos", response_model=list[schemas.Produto])
-def listar_produtos():
-    db: Session = SessionLocal()
-    return db.query(models.Produto).all()
