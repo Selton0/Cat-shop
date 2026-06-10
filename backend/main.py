@@ -1,14 +1,12 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from auth import verificar_senha, criar_token, validar_token
-from fastapi.security import HTTPAuthorizationCredentials
-from fastapi import Depends
-
+from typing import Optional
 import models
 import schemas
-
 from database import SessionLocal, engine
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -28,136 +26,98 @@ def get_db():
         db.close()
 
 @app.post("/login")
-def login(dados: schemas.LoginInput):
-    db: Session = SessionLocal()
+def login(dados: schemas.LoginInput, db: Session = Depends(get_db)):
     usuario = db.query(models.Usuario).filter(
         models.Usuario.email == dados.email
     ).first()
-
     if not usuario or not verificar_senha(dados.senha, usuario.senha):
         raise HTTPException(status_code=401, detail="Email ou senha inválidos.")
-
     token = criar_token({"sub": usuario.email, "nome": usuario.nome})
     return {"access_token": token, "token_type": "bearer"}
 
-@app.get("/produtos", response_model=list[schemas.Produto])
-def listar_produtos():
-    db: Session = SessionLocal()
-    return db.query(models.Produto).all()
+@app.get("/produtos")
+def listar_produtos(
+    nome: Optional[str] = None,
+    page: int = 1,
+    limit: int = 5,
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.Produto)
+    if nome:
+        query = query.filter(models.Produto.nome.ilike(f"%{nome}%"))
+    total = query.count()
+    produtos = query.offset((page - 1) * limit).limit(limit).all()
+    for p in produtos:
+        _ = p.categoria
+    return {
+        "data": produtos,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "pages": (total + limit - 1) // limit
+    }
 
 @app.get("/produtos/{produto_id}")
-def buscar_produto(produto_id: int):
-
-    db: Session = SessionLocal()
-    produto = db.query(models.Produto).filter(
-        models.Produto.id == produto_id
-    ).first()
-
+def buscar_produto(produto_id: int, db: Session = Depends(get_db)):
+    produto = db.query(models.Produto).filter(models.Produto.id == produto_id).first()
     if not produto:
-        raise HTTPException(
-            status_code=404,
-            detail="Produto não encontrado"
-        )
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
     return produto
 
 @app.post("/produtos", status_code=status.HTTP_201_CREATED)
-def criar_produto(produto: schemas.ProdutoCreate, token=Depends(validar_token)):
-    db: Session = SessionLocal()
-
-    categoria = db.query(models.Categoria).filter(
-        models.Categoria.id == produto.categoria_id
-    ).first()
+def criar_produto(produto: schemas.ProdutoCreate, db: Session = Depends(get_db), token=Depends(validar_token)):
+    categoria = db.query(models.Categoria).filter(models.Categoria.id == produto.categoria_id).first()
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
-    
-    novo_produto = models.Produto(
-        nome=produto.nome,
-        preco=produto.preco,
-        categoria_id=produto.categoria_id
-    )
-
-    db.add(novo_produto)
+    novo = models.Produto(nome=produto.nome, preco=produto.preco, categoria_id=produto.categoria_id)
+    db.add(novo)
     db.commit()
-    db.refresh(novo_produto)
-    return novo_produto
+    db.refresh(novo)
+    
+    _ = novo.categoria
+    return novo
 
 @app.put("/produtos/{produto_id}")
-def atualizar_produto(
-    produto_id: int,
-    produto: schemas.ProdutoCreate,
-    token=Depends(validar_token)
-):
-
-    db: Session = SessionLocal()
-    produto_db = db.query(models.Produto).filter(
-        models.Produto.id == produto_id
-    ).first()
-
+def atualizar_produto(produto_id: int, produto: schemas.ProdutoCreate, db: Session = Depends(get_db), token=Depends(validar_token)):
+    produto_db = db.query(models.Produto).filter(models.Produto.id == produto_id).first()
     if not produto_db:
-        raise HTTPException(
-            status_code=404,
-            detail="Produto não encontrado"
-        )
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
     produto_db.nome = produto.nome
     produto_db.preco = produto.preco
+    produto_db.categoria_id = produto.categoria_id
     db.commit()
     db.refresh(produto_db)
     return produto_db
 
 @app.delete("/produtos/{produto_id}")
-def deletar_produto(produto_id: int, token=Depends(validar_token)):
-    db: Session = SessionLocal()
-    produto = db.query(models.Produto).filter(
-        models.Produto.id == produto_id
-    ).first()
-
+def deletar_produto(produto_id: int, db: Session = Depends(get_db), token=Depends(validar_token)):
+    produto = db.query(models.Produto).filter(models.Produto.id == produto_id).first()
     if not produto:
-        raise HTTPException(
-            status_code=404,
-            detail="Produto não encontrado"
-        )
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
     db.delete(produto)
     db.commit()
     return {"mensagem": "Produto deletado"}
 
 @app.get("/categorias")
-def listar_categorias():
-
-    db: Session = SessionLocal()
-    categorias = db.query(models.Categoria).all()
-    return categorias
+def listar_categorias(db: Session = Depends(get_db)):
+    return db.query(models.Categoria).all()
 
 @app.post("/categorias", status_code=status.HTTP_201_CREATED)
-def criar_categoria(categoria: schemas.CategoriaCreate, token=Depends(validar_token)):
-    db: Session = SessionLocal()
-    nova_categoria = models.Categoria(
-        nome=categoria.nome
-
-    )
-    db.add(nova_categoria)
+def criar_categoria(categoria: schemas.CategoriaCreate, db: Session = Depends(get_db), token=Depends(validar_token)):
+    nova = models.Categoria(nome=categoria.nome)
+    db.add(nova)
     db.commit()
-    db.refresh(nova_categoria)
-    return nova_categoria
+    db.refresh(nova)
+    return nova
 
 @app.delete("/categorias/{categoria_id}")
-def deletar_categoria(categoria_id: int, token=Depends(validar_token)):
-    db: Session = SessionLocal()
-    categoria = db.query(models.Categoria).filter(
-        models.Categoria.id == categoria_id
-    ).first()
-
+def deletar_categoria(categoria_id: int, db: Session = Depends(get_db), token=Depends(validar_token)):
+    categoria = db.query(models.Categoria).filter(models.Categoria.id == categoria_id).first()
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
-    produtos_vinculados = db.query(models.Produto).filter(
-        models.Produto.categoria_id == categoria_id
-    ).count()
-
-    if produtos_vinculados > 0:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Não é possível excluir: {produtos_vinculados} produto(s) usam essa categoria."
-        )
-
+    vinculados = db.query(models.Produto).filter(models.Produto.categoria_id == categoria_id).count()
+    if vinculados > 0:
+        raise HTTPException(status_code=400, detail=f"Não é possível excluir: {vinculados} produto(s) usam essa categoria.")
     db.delete(categoria)
     db.commit()
     return {"mensagem": "Categoria deletada"}

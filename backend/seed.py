@@ -6,7 +6,7 @@ models.Base.metadata.create_all(bind=engine)
 from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-db = SessionLocal()
+db: Session = Depends(get_db)
 
 existe = db.query(models.Usuario).filter(models.Usuario.email == "admin@cat.com").first()
 if not existe:

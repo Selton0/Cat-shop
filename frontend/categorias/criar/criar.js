@@ -8,6 +8,11 @@ $("#formCategoria").submit(function (event) {
     method: "POST",
     contentType: "application/json",
 
+    headers: {
+    Authorization:
+        "Bearer " + localStorage.getItem("token")
+      },
+
     data: JSON.stringify({
       nome: nome
     }),
