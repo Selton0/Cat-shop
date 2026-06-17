@@ -21,6 +21,6 @@ $("#btnLogin").on("click", function () {
     error: function (xhr) {
       const msg = xhr.responseJSON?.detail || "Erro ao fazer login.";
       $("#erro").text(msg).removeClass("d-none");
-    }
+    },
   });
 });

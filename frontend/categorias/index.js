@@ -1,6 +1,30 @@
+let idParaExcluir = null;
+
 if (!localStorage.getItem("token")) {
   window.location.href = "../login.html";
 }
+
+$("#btnConfirmarExcluir").on("click", function () {
+  const modal = bootstrap.Modal.getInstance(
+    document.getElementById("modalExcluir"),
+  );
+  modal.hide();
+
+  $.ajax({
+    url: `http://127.0.0.1:8000/categorias/${idParaExcluir}`,
+    method: "DELETE",
+    headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+    success: function () {
+      idParaExcluir = null;
+      carregarCategorias();
+    },
+    error: function (xhr) {
+      idParaExcluir = null;
+      if (xhr.status === 400) alert(xhr.responseJSON.detail);
+      else alert("Erro ao excluir categoria.");
+    },
+  });
+});
 
 function carregarCategorias() {
   $.ajax({
@@ -29,25 +53,18 @@ function carregarCategorias() {
       });
 
       $(".excluir").on("click", function () {
-        const id = $(this).data("id");
-        if (!confirm("Excluir esta categoria?")) return;
-
-        $.ajax({
-          url: `http://127.0.0.1:8000/categorias/${id}`,
-          method: "DELETE",
-          headers: { "Authorization": "Bearer " + localStorage.getItem("token") },
-          success: function () { carregarCategorias(); },
-          error: function (xhr) {
-            if (xhr.status === 400) alert(xhr.responseJSON.detail);
-            else alert("Erro ao excluir categoria.");
-          }
-        });
+        idParaExcluir = $(this).data("id");
+        const nome = $(this).closest("li").find("strong").text();
+        $("#modalExcluirTexto").text(
+          `Tem certeza que deseja excluir a categoria "${nome}"? Esta ação não pode ser desfeita.`,
+        );
+        new bootstrap.Modal(document.getElementById("modalExcluir")).show();
       });
     },
 
     error: function () {
       alert("Erro ao carregar categorias.");
-    }
+    },
   });
 }
 

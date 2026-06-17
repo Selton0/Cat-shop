@@ -9,12 +9,11 @@ $("#formCategoria").submit(function (event) {
     contentType: "application/json",
 
     headers: {
-    Authorization:
-        "Bearer " + localStorage.getItem("token")
-      },
+      Authorization: "Bearer " + localStorage.getItem("token"),
+    },
 
     data: JSON.stringify({
-      nome: nome
+      nome: nome,
     }),
 
     success: function () {
@@ -27,10 +26,9 @@ $("#formCategoria").submit(function (event) {
 
       if (xhr.status === 422) {
         alert("Preencha o nome da categoria.");
-      }
-      else {
+      } else {
         alert("Erro ao criar categoria.");
       }
-    }
+    },
   });
 });
