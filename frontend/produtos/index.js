@@ -7,45 +7,45 @@ if (!localStorage.getItem("token")) {
 
 function carregarProdutos() {
   $.ajax({
-    url: http://127.0.0.1:8000/produtos?nome=${termoBusca}&page=${paginaAtual}&limit=10,
+    url: `http://127.0.0.1:8000/produtos?nome=${termoBusca}&page=${paginaAtual}&limit=10`,
     method: "GET",
     success: function (resposta) {
       $("#lista").empty();
 
       if (resposta.data.length === 0) {
-        $("#lista").append(<li class="list-group-item text-muted">Nenhum produto encontrado.</li>);
+        $("#lista").append(`<li class="list-group-item text-muted">Nenhum produto encontrado.</li>`);
       }
 
       resposta.data.forEach(function (produto) {
         $("#lista").append(`
-    <li class="list-group-item" id="item-${produto.id}">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <strong>${produto.nome}</strong>
-          <span class="badge bg-secondary ms-2">${produto.categoria.nome}</span>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          R$ ${produto.preco.toFixed(2)}
-          <button class="btn btn-warning btn-sm editar" data-id="${produto.id}" data-nome="${produto.nome}" data-preco="${produto.preco}">Editar</button>
-          <button class="btn btn-danger btn-sm excluir" data-id="${produto.id}">Excluir</button>
-        </div>
-      </div>
+          <li class="list-group-item" id="item-${produto.id}">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>${produto.nome}</strong>
+                <span class="badge bg-secondary ms-2">${produto.categoria.nome}</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                R$ ${produto.preco.toFixed(2)}
+                <button class="btn btn-warning btn-sm editar" data-id="${produto.id}" data-nome="${produto.nome}" data-preco="${produto.preco}">Editar</button>
+                <button class="btn btn-danger btn-sm excluir" data-id="${produto.id}">Excluir</button>
+              </div>
+            </div>
 
-      <div class="form-editar mt-2 d-none">
-        <div class="d-flex gap-2">
-          <input type="text" class="form-control form-control-sm input-nome" placeholder="Nome">
-          <input type="number" class="form-control form-control-sm input-preco" placeholder="Preço">
-          <button class="btn btn-success btn-sm salvar" data-id="${produto.id}">Salvar</button>
-          <button class="btn btn-secondary btn-sm cancelar">Cancelar</button>
-        </div>
-      </div>
-    </li>
-  `);
+            <div class="form-editar mt-2 d-none">
+              <div class="d-flex gap-2">
+                <input type="text" class="form-control form-control-sm input-nome" placeholder="Nome">
+                <input type="number" class="form-control form-control-sm input-preco" placeholder="Preço">
+                <button class="btn btn-success btn-sm salvar" data-id="${produto.id}">Salvar</button>
+                <button class="btn btn-secondary btn-sm cancelar">Cancelar</button>
+              </div>
+            </div>
+          </li>
+        `);
       });
 
       $(".editar").off("click").on("click", function () {
         const id = $(this).data("id");
-        const li = $(#item-${id});
+        const li = $(`#item-${id}`);
         li.find(".input-nome").val($(this).data("nome"));
         li.find(".input-preco").val($(this).data("preco"));
         li.find(".form-editar").removeClass("d-none");
@@ -57,7 +57,7 @@ function carregarProdutos() {
 
       $(".salvar").off("click").on("click", function () {
         const id = $(this).data("id");
-        const li = $(#item-${id});
+        const li = $(`#item-${id}`);
         const nome = li.find(".input-nome").val();
         const preco = parseFloat(li.find(".input-preco").val());
 
@@ -67,17 +67,17 @@ function carregarProdutos() {
         }
 
         $.ajax({
-          url: http://127.0.0.1:8000/produtos/${id},
+          url: `http://127.0.0.1:8000/produtos/${id}`,
           method: "PUT",
           contentType: "application/json",
           headers: { "Authorization": "Bearer " + localStorage.getItem("token") },
-          data: JSON.stringify({ nome, preco, categoria_id: 1 }), // mantém categoria
+          data: JSON.stringify({ nome, preco, categoria_id: 1 }),
           success: function () { carregarProdutos(); },
           error: function () { alert("Erro ao atualizar produto."); }
         });
       });
 
-      $("#paginaInfo").text(Página ${resposta.page} de ${resposta.pages});
+      $("#paginaInfo").text(`Página ${resposta.page} de ${resposta.pages}`);
       $("#anterior").prop("disabled", resposta.page === 1);
       $("#proximo").prop("disabled", resposta.page === resposta.pages);
 
@@ -86,7 +86,7 @@ function carregarProdutos() {
         if (!confirm("Excluir este produto?")) return;
 
         $.ajax({
-          url: http://127.0.0.1:8000/produtos/${id},
+          url: `http://127.0.0.1:8000/produtos/${id}`,
           method: "DELETE",
           headers: { "Authorization": "Bearer " + localStorage.getItem("token") },
           success: function () { carregarProdutos(); },
