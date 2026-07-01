@@ -1,3 +1,10 @@
+$(document).ready(function () {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("cadastro") === "sucesso") {
+    showToast("Cadastro realizado com sucesso! Faça login.", "success");
+  }
+});
+
 if (localStorage.getItem("token")) {
   window.location.href = "produtos/index.html";
 }
@@ -20,7 +27,7 @@ $("#btnLogin").on("click", function () {
 
     error: function (xhr) {
       const msg = xhr.responseJSON?.detail || "Erro ao fazer login.";
-      $("#erro").text(msg).removeClass("d-none");
+      showToast(msg, "danger");
     },
   });
 });

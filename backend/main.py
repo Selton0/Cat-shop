@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
-from auth import verificar_senha, criar_token, validar_token
+from auth import verificar_senha, criar_token, validar_token, hash_senha
 from typing import Optional
 import models
 import schemas
@@ -121,3 +121,19 @@ def deletar_categoria(categoria_id: int, db: Session = Depends(get_db), token=De
     db.delete(categoria)
     db.commit()
     return {"mensagem": "Categoria deletada"}
+
+@app.post("/usuarios", status_code=status.HTTP_201_CREATED)
+def criar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
+    existente = db.query(models.Usuario).filter(models.Usuario.email == usuario.email).first()
+    if existente:
+        raise HTTPException(status_code=409, detail="Este email já está cadastrado.")
+
+    novo = models.Usuario(
+        nome=usuario.nome,
+        email=usuario.email,
+        senha=hash_senha(usuario.senha)
+    )
+    db.add(novo)
+    db.commit()
+    db.refresh(novo)
+    return novo

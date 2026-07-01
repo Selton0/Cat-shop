@@ -25,3 +25,6 @@ def validar_token(credentials: HTTPAuthorizationCredentials = Security(bearer_sc
         return payload
     except JWTError:
         raise HTTPException(status_code=401, detail="Token inválido ou expirado.")
+    
+def hash_senha(senha_plana):
+    return pwd_context.hash(senha_plana)

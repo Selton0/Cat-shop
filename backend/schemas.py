@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 
 class ProdutoBase(BaseModel):
     nome: str
@@ -24,3 +24,15 @@ class Categoria(CategoriaBase):
 class LoginInput(BaseModel):
     email: str
     senha: str
+
+class UsuarioBase(BaseModel):
+    nome: str = Field(min_length=2, max_length=100)
+    email: EmailStr
+
+class UsuarioCreate(UsuarioBase):
+    senha: str = Field(min_length=4, max_length=100)
+
+class Usuario(UsuarioBase):
+    id: int
+    class Config:
+        from_attributes = True
