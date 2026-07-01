@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, status, Depends
+from fastapi import FastAPI, HTTPException, status, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from auth import verificar_senha, criar_token, validar_token, hash_senha
@@ -6,6 +6,7 @@ from typing import Optional
 import models
 import schemas
 from database import SessionLocal, engine
+from email_utils import enviar_email_boas_vindas
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -123,7 +124,7 @@ def deletar_categoria(categoria_id: int, db: Session = Depends(get_db), token=De
     return {"mensagem": "Categoria deletada"}
 
 @app.post("/usuarios", status_code=status.HTTP_201_CREATED)
-def criar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
+def criar_usuario(usuario: schemas.UsuarioCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     existente = db.query(models.Usuario).filter(models.Usuario.email == usuario.email).first()
     if existente:
         raise HTTPException(status_code=409, detail="Este email já está cadastrado.")
@@ -136,4 +137,7 @@ def criar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db))
     db.add(novo)
     db.commit()
     db.refresh(novo)
+
+    background_tasks.add_task(enviar_email_boas_vindas, novo.email, novo.nome)
+
     return novo
