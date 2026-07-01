@@ -17,7 +17,7 @@ $(document).ready(function () {
   });
 
   $.ajax({
-    url: "http://127.0.0.1:8000/categorias",
+    url: `${API_URL}/categorias`,
     method: "GET",
     success: function (categorias) {
       categorias.forEach(function (cat) {
@@ -32,7 +32,7 @@ $(document).ready(function () {
     event.preventDefault();
 
     $.ajax({
-      url: "http://127.0.0.1:8000/produtos",
+      url: `${API_URL}/produtos`,
       method: "POST",
       contentType: "application/json",
       headers: {

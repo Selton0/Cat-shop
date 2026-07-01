@@ -11,7 +11,7 @@ $("#btnConfirmarExcluir").on("click", function () {
   modal.hide();
 
   $.ajax({
-    url: `http://127.0.0.1:8000/categorias/${idParaExcluir}`,
+    url: `${API_URL}/categorias/${idParaExcluir}`,
     method: "DELETE",
     headers: { Authorization: "Bearer " + localStorage.getItem("token") },
     success: function () {
@@ -28,7 +28,7 @@ $("#btnConfirmarExcluir").on("click", function () {
 
 function carregarCategorias() {
   $.ajax({
-    url: "http://127.0.0.1:8000/categorias",
+    url: `${API_URL}/categorias`,
     method: "GET",
 
     success: function (categorias) {

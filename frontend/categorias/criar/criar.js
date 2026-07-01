@@ -4,7 +4,7 @@ $("#formCategoria").submit(function (event) {
   const nome = $("#nome").val();
 
   $.ajax({
-    url: "http://127.0.0.1:8000/categorias",
+    url: `${API_URL}/categorias`,
     method: "POST",
     contentType: "application/json",
 

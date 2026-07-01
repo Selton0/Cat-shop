@@ -14,7 +14,7 @@ $("#btnLogin").on("click", function () {
   const senha = $("#senha").val();
 
   $.ajax({
-    url: "http://127.0.0.1:8000/login",
+    url: `${API_URL}/login`,
     method: "POST",
     contentType: "application/json",
     data: JSON.stringify({ email, senha }),

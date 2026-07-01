@@ -35,7 +35,7 @@ $("#btnCadastrar").on("click", function () {
   }
 
   $.ajax({
-    url: "http://127.0.0.1:8000/usuarios",
+    url: `${API_URL}/usuarios`,
     method: "POST",
     contentType: "application/json",
     data: JSON.stringify({ nome, email, senha }),

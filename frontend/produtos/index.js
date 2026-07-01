@@ -13,7 +13,7 @@ $("#btnConfirmarExcluir").on("click", function () {
   modal.hide();
 
   $.ajax({
-    url: `http://127.0.0.1:8000/produtos/${idParaExcluir}`,
+    url: `${API_URL}/produtos/${idParaExcluir}`,
     method: "DELETE",
     headers: { Authorization: "Bearer " + localStorage.getItem("token") },
     success: function () {
@@ -29,7 +29,7 @@ $("#btnConfirmarExcluir").on("click", function () {
 
 function carregarProdutos() {
   $.ajax({
-    url: `http://127.0.0.1:8000/produtos?nome=${termoBusca}&page=${paginaAtual}&limit=10`,
+    url: `${API_URL}/produtos?nome=${termoBusca}&page=${paginaAtual}&limit=10`,
     method: "GET",
     success: function (resposta) {
       $("#lista").empty();
@@ -46,11 +46,11 @@ function carregarProdutos() {
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <strong>${produto.nome}</strong>
-                <span class="badge bg-secondary ms-2">${produto.categoria.nome}</span>
+                <span class="badge bg-secondary ms-2">${produto.categoria ? produto.categoria.nome : "Sem categoria"}</span>
               </div>
               <div class="d-flex align-items-center gap-2">
                 R$ ${produto.preco.toFixed(2)}
-                <button class="btn btn-warning btn-sm editar" data-id="${produto.id}" data-nome="${produto.nome}" data-preco="${produto.preco}">Editar</button>
+                <button class="btn btn-warning btn-sm editar" data-id="${produto.id}" data-nome="${produto.nome}" data-preco="${produto.preco}" data-categoria-id="${produto.categoria_id}">Editar</button>
                 <button class="btn btn-danger btn-sm excluir" data-id="${produto.id}">Excluir</button>
               </div>
             </div>
@@ -74,6 +74,10 @@ function carregarProdutos() {
           const li = $(`#item-${id}`);
           li.find(".input-nome").val($(this).data("nome"));
           li.find(".input-preco").val($(this).data("preco"));
+          li.find(".form-editar").data(
+            "categoria-id",
+            $(this).data("categoria-id"),
+          );
           li.find(".form-editar").removeClass("d-none");
         });
 
@@ -90,6 +94,7 @@ function carregarProdutos() {
           const li = $(`#item-${id}`);
           const nome = li.find(".input-nome").val();
           const preco = parseFloat(li.find(".input-preco").val());
+          const categoria_id = li.find(".form-editar").data("categoria-id");
 
           if (!nome || isNaN(preco)) {
             showToast("Preencha nome e preço.", "warning");
@@ -97,13 +102,13 @@ function carregarProdutos() {
           }
 
           $.ajax({
-            url: `http://127.0.0.1:8000/produtos/${id}`,
+            url: `${API_URL}/produtos/${id}`,
             method: "PUT",
             contentType: "application/json",
             headers: {
               Authorization: "Bearer " + localStorage.getItem("token"),
             },
-            data: JSON.stringify({ nome, preco, categoria_id: 1 }),
+            data: JSON.stringify({ nome, preco, categoria_id }),
             success: function () {
               carregarProdutos();
             },
