@@ -3,11 +3,13 @@
 ## Tecnologias
 
 ### Backend
+
 - Python
 - FastAPI
 - SQLite
 
 ### Frontend
+
 - HTML
 - CSS
 - Bootstrap
@@ -15,21 +17,77 @@
 
 ---
 
-# Como rodar o backend
+## Pré-requisitos
 
-Entre na pasta:
+- Python 3.10+
+- VSCode com a extensão **Live Server** instalada
+
+---
+
+# 1. Clonar o repositório
+
+```bash
+git clone <URL_DO_REPO>
+cd cat-shop
+git checkout criandoIdentidade
+```
+
+---
+
+# 2. Configurar o backend
 
 ```bash
 cd backend
 ```
 
-Instale as dependências:
+### Criar ambiente virtual (recomendado)
 
 ```bash
-pip install fastapi uvicorn sqlalchemy
+python -m venv venv
 ```
 
-Rode o servidor:
+Ativar:
+
+```bash
+# Windows
+venv\Scripts\activate
+
+# Linux/Mac
+source venv/bin/activate
+```
+
+### Instalar dependências
+
+```bash
+pip install -r requirements.txt
+```
+
+### Criar o arquivo `.env`
+
+O `.env` **não está no repositório** (fica no `.gitignore`). Crie o arquivo `backend/.env` manualmente:
+
+```env
+e colocar o conteúdo
+```
+
+### Popular o banco (usuário admin)
+
+O `catshop.db` também não vai pro repositório — o banco nasce vazio no clone novo. Rode:
+
+```bash
+python seed.py
+```
+
+Isso cria o login:
+
+```txt
+Email: admin@cat.com
+Senha: 1234
+```
+
+Produtos e categorias vão começar vazios — cadastre alguns na hora pra demonstrar o CRUD.
+
+### Rodar o servidor
 
 ```bash
 uvicorn main:app --reload
@@ -49,28 +107,44 @@ http://127.0.0.1:8000/docs
 
 ---
 
-# Como rodar o frontend
+# 3. Configurar o frontend
 
-Abra a pasta frontend com o VSCode.
+O arquivo `frontend/config.js` está apontando para o backend publicado no Render:
 
-Utilize a extensão Live Server.
+```js
+const API_URL = "https://cat-shop-c43u.onrender.com";
+```
 
-Abra:
+Escolha uma opção antes da apresentação:
 
-- produtos/index.html
-- categorias/index.html
+- **Usar o backend publicado (mais simples):** deixe o `config.js` como está — nesse caso nem precisa rodar o `uvicorn` local, só o passo 2 até a instalação das dependências é opcional.
+- **Testar o backend local:** troque para
+  ```js
+  const API_URL = "http://127.0.0.1:8000";
+  ```
+
+Abra a pasta `frontend` no VSCode, clique com o botão direito em `login.html` → **Open with Live Server**.
+
+Login (se estiver usando o backend local após o `seed.py`):
+
+```txt
+Email: admin@cat.com
+Senha: 1234
+```
 
 ---
 
 # Funcionalidades
 
 ## Produtos
+
 - Criar produto
 - Listar produtos
 - Editar produto
 - Deletar produto
 
 ## Categorias
+
 - Criar categoria
 - Listar categorias
 
