@@ -17,7 +17,7 @@ $("#formCategoria").submit(function (event) {
     }),
 
     success: function () {
-      alert("Categoria criada!");
+      showToast("Categoria criada!", "success");
       window.location.href = "../index.html";
     },
 
@@ -25,9 +25,9 @@ $("#formCategoria").submit(function (event) {
       console.log(xhr);
 
       if (xhr.status === 422) {
-        alert("Preencha o nome da categoria.");
+        showToast("Preencha o nome da categoria.", "warning");
       } else {
-        alert("Erro ao criar categoria.");
+        showToast("Erro ao criar categoria.", "danger");
       }
     },
   });

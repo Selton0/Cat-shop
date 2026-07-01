@@ -3,7 +3,6 @@ if (!localStorage.getItem("token")) {
 }
 
 $(document).ready(function () {
-
   // Exibe usuário e botão Sair
   const usuario = localStorage.getItem("usuario") || "Usuário";
   $("nav.menu, nav.d-flex").prepend(`
@@ -22,9 +21,11 @@ $(document).ready(function () {
     method: "GET",
     success: function (categorias) {
       categorias.forEach(function (cat) {
-        $("#categoria_id").append(`<option value="${cat.id}">${cat.nome}</option>`);
+        $("#categoria_id").append(
+          `<option value="${cat.id}">${cat.nome}</option>`,
+        );
       });
-    }
+    },
   });
 
   $("#formProduto").submit(function (event) {
@@ -35,27 +36,29 @@ $(document).ready(function () {
       method: "POST",
       contentType: "application/json",
       headers: {
-        "Authorization": "Bearer " + localStorage.getItem("token")
+        Authorization: "Bearer " + localStorage.getItem("token"),
       },
       data: JSON.stringify({
         nome: $("#nome").val(),
         preco: parseFloat($("#preco").val()),
-        categoria_id: parseInt($("#categoria_id").val())
+        categoria_id: parseInt($("#categoria_id").val()),
       }),
       success: function () {
-        alert("Produto criado!");
+        showToast("Produto criado!", "success");
         window.location.href = "../index.html";
       },
       error: function (xhr) {
         if (xhr.status === 401) {
-          alert("Sessão expirada. Faça login novamente.");
+          showToast("Sessão expirada. Faça login novamente.", "warning");
           window.location.href = "../../login.html";
+        } else if (xhr.status === 404) {
+          showToast("Categoria não encontrada.", "danger");
+        } else if (xhr.status === 422) {
+          showToast("Preencha todos os campos.", "warning");
+        } else {
+          showToast("Erro ao criar produto.", "danger");
         }
-        else if (xhr.status === 404) alert("Categoria não encontrada.");
-        else if (xhr.status === 422) alert("Preencha todos os campos.");
-        else alert("Erro ao criar produto.");
-      }
+      },
     });
   });
-
 });

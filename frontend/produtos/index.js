@@ -22,7 +22,7 @@ $("#btnConfirmarExcluir").on("click", function () {
     },
     error: function () {
       idParaExcluir = null;
-      alert("Erro ao excluir produto.");
+      showToast("Erro ao excluir produto.", "danger");
     },
   });
 });
@@ -92,7 +92,7 @@ function carregarProdutos() {
           const preco = parseFloat(li.find(".input-preco").val());
 
           if (!nome || isNaN(preco)) {
-            alert("Preencha nome e preço.");
+            showToast("Preencha nome e preço.", "warning");
             return;
           }
 
@@ -108,7 +108,7 @@ function carregarProdutos() {
               carregarProdutos();
             },
             error: function () {
-              alert("Erro ao atualizar produto.");
+              showToast("Erro ao atualizar produto.", "danger");
             },
           });
         });
@@ -130,7 +130,7 @@ function carregarProdutos() {
     },
     error: function (xhr) {
       console.error("Erro ao carregar produtos:", xhr);
-      alert("Erro ao carregar produtos. Verifique o console.");
+      showToast("Erro ao carregar produtos. Verifique o console.", "danger");
     },
   });
 }

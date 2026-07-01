@@ -20,8 +20,8 @@ $("#btnConfirmarExcluir").on("click", function () {
     },
     error: function (xhr) {
       idParaExcluir = null;
-      if (xhr.status === 400) alert(xhr.responseJSON.detail);
-      else alert("Erro ao excluir categoria.");
+      if (xhr.status === 400) showToast(xhr.responseJSON.detail, "danger");
+      else showToast("Erro ao excluir categoria.", "danger");
     },
   });
 });
@@ -63,7 +63,7 @@ function carregarCategorias() {
     },
 
     error: function () {
-      alert("Erro ao carregar categorias.");
+      showToast("Erro ao carregar categorias.", "danger");
     },
   });
 }
